@@ -4,10 +4,6 @@ Six interactive web apps (plain HTML/JavaScript, no server needed):
 
 | Tab | File |
 |-----|------|
-| Basic Continuous-Time Signals | `apps/ct-signals.html` |
-| Basic Discrete-Time Signals | `apps/dt-signals.html` |
-| Time Operations (Continuous-Time) | `apps/ct-operations.html` |
-| Time Operations (Discrete-Time) | `apps/dt-operations.html` |
 | Convolution Integral | `apps/convolution-integral.html` |
 | Convolution Sum | `apps/convolution-sum.html` |
 
