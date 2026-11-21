@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1306203 – Convolution Sum</title>
+<style>
+html,body{margin:0;padding:0;background:transparent;}
+body{padding:8px;}
+</style>
+</head>
+<body>
+
+<div id="app" class="animation-app">
+
+<style>
+#app {
+    width:100%;
+    max-width:1500px;
+    margin:auto;
+    padding:clamp(8px, 2vw, 24px);
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    position:relative;
+    color:#1f2a44;
+    background:linear-gradient(160deg,#f7f9ff 0%,#eaf0fc 100%);
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(31,42,68,0.10);
+}
+
+#app * { box-sizing:border-box; }
+
+#app h2 {
+    text-align:center;
+    font-size:clamp(20px, 2.6vw, 30px);
+    margin:12px 0 4px;
+    padding:0 140px;      /* keeps long titles clear of the mode button */
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#2f6fed,#12a36a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+}
+
+#app .subtitle {
+    text-align:center;
+    font-size:clamp(13px,1.6vw,17px);
+    margin:0 0 18px;
+    opacity:0.8;
+}
+
+#app button {
+    color:white;
+    padding:10px clamp(12px,2vw,22px);
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:clamp(13px,1.5vw,15px);
+    font-weight:bold;
+    white-space:nowrap;
+    touch-action:manipulation;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, box-shadow .12s, filter .12s;
+}
+#app button:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button:active { transform:scale(0.97); }
+
+#app .play  {background:linear-gradient(135deg,#27b57a,#168553);}
+#app .pause {background:linear-gradient(135deg,#f0b429,#cf8a00);}
+#app .reset {background:linear-gradient(135deg,#6b7488,#454c5e);}
+#app .theme {
+    background:linear-gradient(135deg,#8b6cff,#5a3fd4);
+    position:absolute;
+    top:clamp(24px,3vw,36px);
+    right:clamp(8px,1.5vw,16px);
+    padding:8px 14px;
+    font-size:clamp(12px,1.3vw,14px);
+    z-index:2;
+}
+
+/* ---------- two-column layout ---------- */
+#app .layout {
+    display:grid;
+    grid-template-columns:310px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+}
+
+#app .panel {
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    padding:14px;
+}
+
+#app .left { display:flex; flex-direction:column; gap:14px; }
+
+#app .sigcard.x { --c:#2f6fed; }
+#app .sigcard.h { --c:#f08a24; }
+
+#app .sigcard h3 {
+    margin:0 0 10px;
+    font-size:17px;
+    color:var(--c);
+}
+
+#app .tiles {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+#app .tile {
+    cursor:pointer;
+    border:2px solid #d3dcf0;
+    border-radius:10px;
+    padding:6px 4px 5px;
+    text-align:center;
+    font-size:12px;
+    font-weight:bold;
+    background:#ffffff;
+    user-select:none;
+    transition:border-color .12s, box-shadow .12s;
+}
+#app .tile:hover { border-color:var(--c); }
+#app .tile.active {
+    border-color:var(--c);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+#app .tile svg { display:block; width:100%; height:38px; stroke:var(--c); }
+
+#app .param {
+    display:none;
+    margin-top:10px;
+    font-size:13px;
+    font-weight:bold;
+}
+#app .param.show { display:block; }
+#app .param input {
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app .param input:focus {
+    outline:none;
+    border-color:var(--c);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent);
+}
+
+#app .howto { font-size:13px; line-height:1.55; }
+#app .howto b { color:#2f6fed; }
+#app .howto ol { margin:6px 0 0; padding-left:20px; }
+
+#app .range h3 { margin:0 0 10px; font-size:17px; }
+#app .rangegrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#app .rangegrid label { font-size:13px; font-weight:bold; }
+#app .rangegrid input {
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app .rangegrid input:focus {
+    outline:none;
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.25);
+}
+#app .range .hint { margin-top:8px; font-size:12px; opacity:0.75; }
+
+/* ---------- right column ---------- */
+#app .right { min-width:0; }
+
+#app .controls {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+#app .controls .grow { flex:1 1 220px; min-width:160px; }
+#app .controls input[type=range] { width:100%; accent-color:#2f6fed; }
+
+#app .controls select {
+    padding:8px;
+    font-size:14px;
+    font-weight:bold;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+}
+
+#app .status {
+    text-align:center;
+    width:fit-content;
+    max-width:100%;
+    margin:0 auto 12px;
+    padding:9px 20px;
+    border-radius:999px;
+    background:#ffffff;
+    border:1px solid #d3dcf0;
+    box-shadow:0 3px 10px rgba(31,42,68,0.08);
+    font-size:clamp(12px,1.5vw,16px);
+    font-weight:bold;
+}
+
+#app .plots { display:flex; flex-direction:column; gap:12px; min-width:0; }
+
+#app canvas {
+    display:block;
+    max-width:100%;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+}
+
+/* ---------- dark mode ---------- */
+#app.dark {
+    background:linear-gradient(160deg,#0d1117 0%,#161d2e 100%);
+    color:#e6edf7;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+#app.dark h2 {
+    background:linear-gradient(90deg,#6aa9ff,#3ddc97);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+#app.dark .panel,
+#app.dark canvas {
+    background:linear-gradient(180deg,#1b2336,#111724);
+    border-color:#2f3b57;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+#app.dark .sigcard.x { --c:#58a6ff; }
+#app.dark .sigcard.h { --c:#ffb454; }
+#app.dark .tile { background:#0f1522; border-color:#33415f; }
+#app.dark .tile:hover,
+#app.dark .tile.active { border-color:var(--c); }
+#app.dark .param input,
+#app.dark .rangegrid input,
+#app.dark .controls select {
+    background:#0f1522;
+    color:#e6edf7;
+    border-color:#3b4866;
+}
+#app.dark .status {
+    background:#1a2233;
+    border-color:#33415f;
+    color:#e6edf7;
+    box-shadow:0 3px 12px rgba(0,0,0,0.4);
+}
+#app.dark .howto b { color:#6aa9ff; }
+
+/* ---------- responsive ---------- */
+@media (max-width:900px) {
+    #app .layout { grid-template-columns:1fr; }
+    #app .left { flex-direction:row; flex-wrap:wrap; }
+    #app .left .panel { flex:1 1 260px; }
+}
+
+@media (max-width:550px) {
+    #app { padding:6px; }
+    #app h2 { margin-top:64px; padding:0; }
+    #app .theme { padding:7px 11px; }
+}
+</style>
+
+<button class="theme" id="theme">🌙 DARK MODE</button>
+
+<h2>1306203 Signals & Systems: Convolution Sum</h2>
+<div class="subtitle">y[n] = Σ x[k] · h[n − k]</div>
+
+<div class="layout">
+
+    <!-- LEFT COLUMN: SIGNAL CHOICES -->
+    <div class="left">
+        <div class="panel sigcard x" id="card_x"></div>
+        <div class="panel sigcard h" id="card_h"></div>
+
+        <div class="panel range">
+            <h3>Index boundaries</h3>
+            <div class="rangegrid">
+                <label>n<sub>0</sub> (start)
+                    <input id="n0" type="number" value="-5" min="-50" max="95" step="1">
+                </label>
+                <label>n<sub>1</sub> (end)
+                    <input id="n1" type="number" value="15" min="-45" max="100" step="1">
+                </label>
+            </div>
+            <div class="hint">Sets the range of k and n on all three plots (integers, n<sub>1</sub> − n<sub>0</sub> between 5 and 120). Signals start at n = 0 (a unit step starts at its shift m).</div>
+        </div>
+
+        <div class="panel howto">
+            <b>How to read the plots</b>
+            <ol>
+                <li><b>Flip</b> h[k] to get h[−k].</li>
+                <li><b>Shift</b> it by n to get h[n−k].</li>
+                <li><b>Multiply</b> it with x[k], sample by sample.</li>
+                <li><b>Sum</b> all the products: the total is y[n].</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: PLOTS -->
+    <div class="right">
+
+        <div class="controls">
+            <button class="play" id="play">▶ PLAY</button>
+            <button class="pause" id="pause">Ⅱ PAUSE</button>
+            <button class="reset" id="reset">↺ RESET</button>
+
+            <select id="speed" title="Animation speed">
+                <option value="0.25">0.25× speed</option>
+                <option value="0.5">0.5× speed</option>
+                <option value="1" selected>1.0× speed</option>
+                <option value="2">2.0× speed</option>
+            </select>
+
+            <div class="grow">
+                <input id="tslider" type="range" min="-5" max="15" step="1" value="0">
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="plots" id="plots">
+            <canvas id="cTop"></canvas>
+            <canvas id="cMid"></canvas>
+            <canvas id="cBot"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function(){
+
+const root=document.getElementById("app");
+const $=s=>root.querySelector(s);
+
+// ======================================
+// SETTINGS
+// ======================================
+
+let NMIN=-5, NMAX=15;          // visible index range (user inputs n0, n1)
+let VN=NMAX-NMIN+1;            // number of samples shown
+
+let xk=new Float64Array(VN);   // x[k] over the view
+let hk=new Float64Array(VN);   // h[n-k] over the view (current n)
+let pk=new Float64Array(VN);   // x[k] h[n-k] over the view (current n)
+let yArr=new Float64Array(VN); // y[n] over the view
+
+let rngTop=[-1,1], rngMid=[-1,1], rngBot=[-1,1];
+
+let nf=0;                      // current n (float while animating)
+let fresh=true;                // true until the animation is started or scrubbed
+let playing=false;
+let lastTs=null;
+let rafID=null;
+let xf=null, hf=null;
+let xStart=0, hStart=0;
+
+function curN(){ return Math.min(NMAX,Math.max(NMIN,Math.floor(nf+1e-9))); }
+function initialN(){ return Math.min(NMAX,Math.max(NMIN,0)); }
+
+// ======================================
+// SIGNALS  (discrete-time, integer n)
+// ======================================
+
+// small stem-plot icons (values between -1 and 1)
+const ICONS={
+    step: [0,0,0,1,1,1,1,1],
+    pulse:[0,0,1,1,1,1,0,0],
+    exp:  [0,0,1,0.7,0.5,0.35,0.25,0.17],
+    tri:  [0,0,0.25,0.5,0.75,1,0,0]
+};
+
+function iconSVG(vals){
+
+    let g='<svg viewBox="0 0 64 28">'+
+          '<line x1="2" y1="14" x2="62" y2="14" stroke-width="1" opacity="0.35"/>';
+
+    vals.forEach((v,i)=>{
+        const x=7+i*7.2, y=14-v*11;
+        g+='<line x1="'+x+'" y1="14" x2="'+x+'" y2="'+y+'" stroke-width="2" stroke-linecap="round"/>'+
+           '<circle cx="'+x+'" cy="'+y+'" r="2.4" fill="var(--c)" stroke="none"/>';
+    });
+
+    return g+'</svg>';
+}
+
+const TYPES={
+    step: {label:"Unit step"},
+    pulse:{label:"Rect. pulse"},
+    exp:  {label:"Decaying exp."},
+    tri:  {label:"Triangular"}
+};
+
+const CHOICES={
+    x:["step","pulse","exp","tri"],
+    h:["step","pulse","exp","tri"]
+};
+
+const PARAMS=[
+    {p:"A",label:"Amplitude A",
+        types:["step","pulse","exp","tri"], min:-10, max:10, step:0.1},
+    {p:"m",label:"Shift m (samples)  —  u[n − m]",
+        types:["step"], min:-20, max:20, step:1, int:true},
+    {p:"L",label:"Width L (samples)",
+        types:["pulse","tri"], min:1, max:50, step:1, int:true},
+    {p:"a",label:"Decay factor a (0 &lt; a &lt; 1)  —  a<sup>n</sup>",
+        types:["exp"], min:0.05, max:0.99, step:0.01}
+];
+
+const sig={
+    x:{type:"pulse", A:1, m:0, L:4, a:0.7},
+    h:{type:"exp",   A:1, m:0, L:4, a:0.7}
+};
+
+function makeFn(s){
+    if(s.type==="step")  return n=>n>=s.m?s.A:0;
+    if(s.type==="pulse") return n=>(n>=0&&n<s.L)?s.A:0;
+    if(s.type==="exp")   return n=>n>=0?s.A*Math.pow(s.a,n):0;
+    // triangular: ramp from 0 up to A at n = L, zero afterwards
+    return n=>(n>=0&&n<=s.L)?s.A*n/s.L:0;
+}
+
+function startOf(sg){ return sg.type==="step"?sg.m:0; }
+
+// ======================================
+// LEFT COLUMN: BUILD THE SIGNAL CARDS
+// ======================================
+
+function buildCard(key){
+
+    const card=$("#card_"+key);
+    const title=key==="x"?"x[n]":"h[n]";
+
+    let h='<h3>'+title+'</h3><div class="tiles">';
+
+    CHOICES[key].forEach(id=>{
+        h+='<div class="tile" data-type="'+id+'">'+iconSVG(ICONS[id])+TYPES[id].label+'</div>';
+    });
+
+    h+='</div>';
+
+    PARAMS.forEach(q=>{
+
+        const used=q.types.filter(t=>CHOICES[key].includes(t));
+        if(used.length===0) return;
+
+        h+='<label class="param" data-for="'+used.join(" ")+'">'+q.label+
+           '<input type="number" data-p="'+q.p+'" min="'+q.min+'" max="'+q.max+
+           '" step="'+q.step+'" value="'+sig[key][q.p]+'"></label>';
+    });
+
+    card.innerHTML=h;
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.addEventListener("click",()=>{
+            sig[key].type=el.dataset.type;
+            refreshCard(key);
+            update();
+        });
+    });
+
+    card.querySelectorAll(".param input").forEach(inp=>{
+        inp.addEventListener("change",()=>{
+
+            const p=inp.dataset.p;
+            const q=PARAMS.find(r=>r.p===p);
+            let v=Number(inp.value);
+
+            if(!Number.isFinite(v)) v=sig[key][p];
+            if(q.int) v=Math.round(v);
+            v=Math.min(q.max,Math.max(q.min,v));
+
+            inp.value=v;
+            sig[key][p]=v;
+            update();
+        });
+    });
+
+    refreshCard(key);
+}
+
+function refreshCard(key){
+
+    const card=$("#card_"+key);
+
+    card.querySelectorAll(".tile").forEach(el=>{
+        el.classList.toggle("active",el.dataset.type===sig[key].type);
+    });
+
+    card.querySelectorAll(".param").forEach(el=>{
+        el.classList.toggle("show",el.dataset.for.split(" ").includes(sig[key].type));
+    });
+}
+
+buildCard("x");
+buildCard("h");
+
+// ======================================
+// THEMES
+// ======================================
+
+const themes={
+    light:{text:"#1f2a44",tick:"#44506e",axis:"#44506e",zero:"#9aa6bf",grid:"#e0e6f3",
+           x:"#2f6fed",h:"#f08a24",p:"#12a36a",y:"#8b5cf6",
+           shade:"rgba(18,163,106,0.28)",ring:"#ffffff",
+           legendBg:"rgba(255,255,255,0.92)",glow:4,future:0.22},
+    dark:{text:"#e6edf7",tick:"#b4c0d9",axis:"#b4c0d9",zero:"#6e7b96",grid:"#27324a",
+          x:"#58a6ff",h:"#ffb454",p:"#3ddc97",y:"#b794ff",
+          shade:"rgba(61,220,151,0.32)",ring:"#111724",
+          legendBg:"rgba(15,21,34,0.92)",glow:14,future:0.24}
+};
+
+let darkMode=!!(window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches);
+let C=themes.light;
+const themeBtn=$("#theme");
+
+function applyTheme(){
+    C=darkMode?themes.dark:themes.light;
+    root.classList.toggle("dark",darkMode);
+    themeBtn.textContent=darkMode?"☀ LIGHT MODE":"🌙 DARK MODE";
+}
+
+themeBtn.addEventListener("click",()=>{
+    darkMode=!darkMode;
+    applyTheme();
+    render();
+});
+
+applyTheme();
+
+// ======================================
+// NUMERICS
+// ======================================
+
+// y[n] = sum over k of x[k] h[n-k].
+// x[k] is zero before its start index and h[n-k] is zero for k > n - (start of h),
+// so only  xStart <= k <= n - hStart  contributes (independent of n0 and n1).
+let lastMaxP=0, lastMinP=0;
+
+function convSum(n){
+
+    lastMaxP=0;
+    lastMinP=0;
+
+    const lo=xStart;
+    const hi=n-hStart;
+
+    if(hi<lo) return 0;
+
+    let sum=0;
+
+    for(let k=lo;k<=hi;k++){
+
+        const pv=xf(k)*hf(n-k);
+        sum+=pv;
+        if(pv>lastMaxP) lastMaxP=pv;
+        if(pv<lastMinP) lastMinP=pv;
+    }
+
+    return sum;
+}
+
+// axis range that always contains zero, with a little padding
+function padRange(lo,hi){
+
+    lo=Math.min(0,lo);
+    hi=Math.max(0,hi);
+
+    let span=hi-lo;
+    if(span<1e-9){ lo=-1; hi=1; span=2; }
+
+    return [lo-0.12*span, hi+0.12*span];
+}
+
+function recompute(){
+
+    xf=makeFn(sig.x);
+    hf=makeFn(sig.h);
+    xStart=startOf(sig.x);
+    hStart=startOf(sig.h);
+
+    VN=NMAX-NMIN+1;
+
+    xk=new Float64Array(VN);
+    hk=new Float64Array(VN);
+    pk=new Float64Array(VN);
+    yArr=new Float64Array(VN);
+
+    let xlo=0, xhi=0;
+    for(let i=0;i<VN;i++){
+        xk[i]=xf(NMIN+i);
+        if(xk[i]>xhi) xhi=xk[i];
+        if(xk[i]<xlo) xlo=xk[i];
+    }
+
+    // h[n-k] takes the values of h[s] for |s| up to the plotted range
+    let hlo=0, hhi=0;
+    for(let s=-(NMAX-NMIN);s<=NMAX-NMIN;s++){
+        const v=hf(s);
+        if(v>hhi) hhi=v;
+        if(v<hlo) hlo=v;
+    }
+
+    rngTop=padRange(Math.min(xlo,hlo),Math.max(xhi,hhi));
+
+    let plo=0, phi=0, ylo=0, yhi=0;
+
+    for(let i=0;i<VN;i++){
+
+        yArr[i]=convSum(NMIN+i);
+
+        if(lastMaxP>phi) phi=lastMaxP;
+        if(lastMinP<plo) plo=lastMinP;
+        if(yArr[i]>yhi) yhi=yArr[i];
+        if(yArr[i]<ylo) ylo=yArr[i];
+    }
+
+    rngMid=padRange(plo,phi);
+    rngBot=padRange(ylo,yhi);
+}
+
+// h[n-k], the product, and the sum for one value of n
+function computeAt(n){
+
+    for(let i=0;i<VN;i++){
+        const k=NMIN+i;
+        hk[i]=hf(n-k);
+        pk[i]=xk[i]*hk[i];
+    }
+
+    return convSum(n);
+}
+
+// ======================================
+// CANVAS HELPERS
+// ======================================
+
+const plotsBox=$("#plots");
+const cTop=$("#cTop"), cMid=$("#cMid"), cBot=$("#cBot");
+const dpr=()=>window.devicePixelRatio||1;
+
+function fit(){
+
+    const w=Math.max(280,Math.floor(plotsBox.clientWidth));
+
+    [[cTop,250],[cMid,250],[cBot,290]].forEach(([cv,h])=>{
+        cv._w=w;
+        cv._h=h;
+        cv.style.width=w+"px";
+        cv.style.height=h+"px";
+        cv.width=Math.round(w*dpr());
+        cv.height=Math.round(h*dpr());
+    });
+}
+
+function begin(cv){
+    const ctx=cv.getContext("2d");
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);
+    ctx.clearRect(0,0,cv._w,cv._h);
+    ctx.lineJoin="round";
+    return ctx;
+}
+
+function makeArea(cv,ymin,ymax){
+
+    const W=cv._w, H=cv._h;
+    const L=60, R=W-22, T=36, B=H-44;
+    const x0=NMIN-0.5, x1=NMAX+0.5;
+
+    return {
+        W,H,L,R,T,B,ymin,ymax,
+        unit:(R-L)/(x1-x0),
+        X:v=>L+(v-x0)/(x1-x0)*(R-L),
+        Y:v=>B-(v-ymin)/(ymax-ymin)*(B-T)
+    };
+}
+
+function niceTicks(a,b,n){
+
+    const raw=(b-a)/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(raw)));
+    const r=raw/mag;
+    const step=(r<=1?1:r<=2?2:r<=5?5:10)*mag;
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step){
+        ticks.push(Math.abs(v)<1e-9?0:v);
+    }
+
+    return {ticks,step};
+}
+
+// integer ticks for the index axis
+function intTicks(a,b,maxCount){
+
+    const raw=(b-a)/maxCount;
+    const cand=[1,2,5,10,20,50,100];
+    let step=cand[cand.length-1];
+
+    for(const c of cand){ if(c>=raw){ step=c; break; } }
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step)*step; v<=b; v+=step) ticks.push(v);
+
+    return ticks;
+}
+
+function fmt(v,step){
+    const dec=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
+    return v.toFixed(dec);
+}
+
+function drawAxes(ctx,P,title,xlabel){
+
+    const xt=intTicks(NMIN,NMAX,Math.max(4,Math.floor((P.R-P.L)/42)));
+    const yt=niceTicks(P.ymin,P.ymax,4);
+
+    ctx.font="11px Arial";
+    ctx.lineWidth=1;
+
+    xt.forEach(v=>{
+        const x=P.X(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(x,P.T); ctx.lineTo(x,P.B); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="center";
+        ctx.fillText(String(v),x,P.B+16);
+    });
+
+    yt.ticks.forEach(v=>{
+        if(v<P.ymin-1e-9) return;
+        const y=P.Y(v);
+
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(P.L,y); ctx.lineTo(P.R,y); ctx.stroke();
+
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="right";
+        ctx.fillText(fmt(v,yt.step),P.L-8,y+4);
+    });
+
+    // zero lines
+    ctx.strokeStyle=C.zero;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(P.L,P.Y(0)); ctx.lineTo(P.R,P.Y(0));
+    ctx.moveTo(P.X(0),P.T); ctx.lineTo(P.X(0),P.B);
+    ctx.stroke();
+
+    // frame
+    ctx.strokeStyle=C.axis;
+    ctx.beginPath();
+    ctx.moveTo(P.L,P.T); ctx.lineTo(P.L,P.B); ctx.lineTo(P.R,P.B);
+    ctx.stroke();
+
+    ctx.fillStyle=C.text;
+    ctx.textAlign="left";
+    ctx.font="bold 14px Arial";
+    ctx.fillText(title,P.L,22);
+
+    ctx.textAlign="center";
+    ctx.font="13px Arial";
+    ctx.fillText(xlabel,(P.L+P.R)/2,P.H-8);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+}
+
+// items: [{color, label, fill}]
+function drawLegend(ctx,P,items){
+
+    ctx.font="bold 12px Arial";
+
+    let w=0;
+    items.forEach(it=>{ w=Math.max(w,ctx.measureText(it.label).width); });
+    w+=44;
+
+    const h=10+items.length*20;
+    const x=P.R-w-8;
+    const y=P.T+8;
+
+    roundRect(ctx,x,y,w,h,8);
+    ctx.fillStyle=C.legendBg;
+    ctx.fill();
+
+    items.forEach((it,k)=>{
+
+        const yy=y+20+k*20;
+
+        if(it.fill){
+            ctx.fillStyle=it.fill;
+            ctx.fillRect(x+10,yy-9,22,10);
+        }
+        else{
+            ctx.strokeStyle=it.color;
+            ctx.fillStyle=it.color;
+            ctx.lineWidth=2.5;
+            ctx.beginPath(); ctx.moveTo(x+21,yy-1); ctx.lineTo(x+21,yy-10); ctx.stroke();
+            ctx.beginPath(); ctx.arc(x+21,yy-10,3.5,0,2*Math.PI); ctx.fill();
+        }
+
+        ctx.fillStyle=it.color;
+        ctx.textAlign="left";
+        ctx.fillText(it.label,x+38,yy);
+    });
+}
+
+function clipTo(ctx,P){
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(P.L,P.T,P.R-P.L,P.B-P.T);
+    ctx.clip();
+}
+
+function vline(ctx,P,x,color,alpha){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle=color;
+    ctx.lineWidth=1.6;
+    ctx.setLineDash([5,5]);
+    ctx.beginPath(); ctx.moveTo(x,P.T); ctx.lineTo(x,P.B); ctx.stroke();
+    ctx.restore();
+}
+
+// dot radius shrinks when many samples are shown
+function dotR(){ return VN>90?2.2:VN>50?3:VN>30?3.8:4.8; }
+
+// stems for the samples valAt(i), i = 0 .. VN-1  (k = NMIN + i)
+function stems(ctx,P,valAt,color,off,opts){
+
+    opts=opts||{};
+
+    const r=(opts.r||dotR());
+    const alphaAt=opts.alphaAt||(()=>1);
+
+    ctx.lineWidth=opts.lw||2;
+    ctx.strokeStyle=color;
+    ctx.fillStyle=color;
+
+    for(let i=0;i<VN;i++){
+
+        const x=P.X(NMIN+i)+off;
+        const y=P.Y(valAt(i));
+
+        ctx.globalAlpha=(opts.alpha===undefined?1:opts.alpha)*alphaAt(i);
+
+        const v=valAt(i);
+
+        if(v!==0){
+            ctx.beginPath(); ctx.moveTo(x,P.Y(0)); ctx.lineTo(x,y); ctx.stroke();
+        }
+
+        // zero-valued samples get a small dot
+        ctx.beginPath(); ctx.arc(x,y,v===0?r*0.5:r,0,2*Math.PI); ctx.fill();
+    }
+
+    ctx.globalAlpha=1;
+}
+
+// ======================================
+// PLOT 1: x[k] AND h[n-k]
+// ======================================
+
+function drawTop(n){
+
+    const ctx=begin(cTop);
+    const P=makeArea(cTop,rngTop[0],rngTop[1]);
+
+    drawAxes(ctx,P,"① x[k]  and  h[n − k]","k  (dummy index)");
+
+    clipTo(ctx,P);
+
+    vline(ctx,P,P.X(n),C.h,0.7);
+
+    const off=VN>60?0:3;
+
+    stems(ctx,P,i=>xk[i],C.x,-off);
+
+    ctx.save();
+    ctx.shadowColor=C.h;
+    ctx.shadowBlur=C.glow;
+    stems(ctx,P,i=>hk[i],C.h,off);
+    ctx.restore();
+
+    ctx.restore();
+
+    // marker at k = n
+    const mx=P.X(n);
+    ctx.fillStyle=C.h;
+    ctx.beginPath();
+    ctx.moveTo(mx,P.B-9); ctx.lineTo(mx-6,P.B); ctx.lineTo(mx+6,P.B);
+    ctx.closePath();
+    ctx.fill();
+
+    drawLegend(ctx,P,[
+        {color:C.x,label:"x[k]"},
+        {color:C.h,label:"h[n − k],  n = "+n}
+    ]);
+}
+
+// ======================================
+// PLOT 2: PRODUCT AND ITS SUM
+// ======================================
+
+function drawMid(n,sum){
+
+    const ctx=begin(cMid);
+    const P=makeArea(cMid,rngMid[0],rngMid[1]);
+
+    drawAxes(ctx,P,"② x[k] · h[n − k]   (sum of the stems = y[n])","k  (dummy index)");
+
+    clipTo(ctx,P);
+
+    // faint reference stems of the two signals
+    const off=VN>60?0:3;
+    stems(ctx,P,i=>xk[i],C.x,-off,{alpha:0.28,r:dotR()*0.7,lw:1.4});
+    stems(ctx,P,i=>hk[i],C.h,off,{alpha:0.28,r:dotR()*0.7,lw:1.4});
+
+    vline(ctx,P,P.X(n),C.h,0.6);
+
+    // shaded columns under the product
+    const bw=P.unit*0.7;
+    ctx.fillStyle=C.shade;
+
+    for(let i=0;i<VN;i++){
+        if(pk[i]===0) continue;
+        const x=P.X(NMIN+i);
+        const y0=P.Y(0), y1=P.Y(pk[i]);
+        ctx.fillRect(x-bw/2,Math.min(y0,y1),bw,Math.abs(y1-y0));
+    }
+
+    ctx.save();
+    ctx.shadowColor=C.p;
+    ctx.shadowBlur=C.glow;
+    stems(ctx,P,i=>pk[i],C.p,0,{lw:2.4,r:dotR()*1.1});
+    ctx.restore();
+
+    ctx.restore();
+
+    drawLegend(ctx,P,[
+        {color:C.p,label:"x[k] · h[n − k]"},
+        {color:C.p,label:"Sum = "+sum.toFixed(3),fill:C.shade}
+    ]);
+}
+
+// ======================================
+// PLOT 3: RESULT y[n]
+// ======================================
+
+function drawBot(n,sum){
+
+    const ctx=begin(cBot);
+    const P=makeArea(cBot,rngBot[0],rngBot[1]);
+
+    drawAxes(ctx,P,"③ y[n] = x[n] ∗ h[n]","n  (sample index)");
+
+    clipTo(ctx,P);
+
+    vline(ctx,P,P.X(n),C.y,0.45);
+
+    // past (solid) and future (very light)
+    ctx.save();
+    ctx.shadowColor=C.y;
+    ctx.shadowBlur=C.glow;
+
+    stems(ctx,P,i=>yArr[i],C.y,0,{
+        lw:2.4,
+        alphaAt:i=>(NMIN+i<=n?1:C.future)
+    });
+
+    ctx.restore();
+
+    ctx.restore();
+
+    // current sample: large circle
+    const px=P.X(n), py=P.Y(sum);
+
+    ctx.save();
+    ctx.shadowColor=C.y;
+    ctx.shadowBlur=C.glow+4;
+    ctx.fillStyle=C.y;
+    ctx.beginPath(); ctx.arc(px,py,dotR()+4,0,2*Math.PI); ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle=C.ring;
+    ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.arc(px,py,dotR()+4,0,2*Math.PI); ctx.stroke();
+
+    drawLegend(ctx,P,[
+        {color:C.y,label:"y["+n+"] = "+sum.toFixed(3)}
+    ]);
+}
+
+// ======================================
+// RENDER
+// ======================================
+
+function render(){
+
+    const n=curN();
+    const sum=computeAt(n);
+
+    drawTop(n);
+    drawMid(n,sum);
+    drawBot(n,sum);
+
+    $("#status").textContent=
+        "n = "+n+"   |   y[n] = Σ x[k] h[n−k] = "+sum.toFixed(3);
+
+    $("#tslider").value=n;
+}
+
+function update(){
+    recompute();
+    render();
+}
+
+function applyRange(){
+
+    let a=Number($("#n0").value);
+    let b=Number($("#n1").value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)){
+        $("#n0").value=NMIN;
+        $("#n1").value=NMAX;
+        return;
+    }
+
+    a=Math.round(Math.min(95,Math.max(-50,a)));
+    b=Math.round(Math.min(a+120,Math.max(a+5,b)));
+
+    $("#n0").value=a;
+    $("#n1").value=b;
+
+    NMIN=a;
+    NMAX=b;
+
+    const sl=$("#tslider");
+    sl.min=a;
+    sl.max=b;
+
+    pause();
+    nf=initialN();
+    fresh=true;
+
+    update();
+}
+
+$("#n0").addEventListener("change",applyRange);
+$("#n1").addEventListener("change",applyRange);
+
+// ======================================
+// ANIMATION
+// ======================================
+
+function animate(ts){
+
+    if(!playing) return;
+
+    if(lastTs!==null){
+        const dt=Math.min((ts-lastTs)/1000,0.05);
+        nf+=dt*((NMAX-NMIN)/8)*Number($("#speed").value);
+    }
+
+    lastTs=ts;
+
+    if(nf>=NMAX){
+        nf=NMAX;
+        render();
+        pause();
+        return;
+    }
+
+    render();
+    rafID=requestAnimationFrame(animate);
+}
+
+function pause(){
+    playing=false;
+    if(rafID!==null) cancelAnimationFrame(rafID);
+    rafID=null;
+    lastTs=null;
+}
+
+$("#play").addEventListener("click",()=>{
+
+    if(playing) return;
+
+    // a fresh simulation (or a finished one) starts at n = n0
+    if(fresh||curN()>=NMAX) nf=NMIN;
+    fresh=false;
+
+    playing=true;
+    lastTs=null;
+    rafID=requestAnimationFrame(animate);
+});
+
+$("#pause").addEventListener("click",pause);
+
+$("#reset").addEventListener("click",()=>{
+    pause();
+    nf=initialN();
+    fresh=true;
+    render();
+});
+
+$("#tslider").addEventListener("input",e=>{
+    pause();
+    fresh=false;
+    nf=Number(e.target.value);
+    render();
+});
+
+// ======================================
+// RESPONSIVE RESIZING
+// ======================================
+
+function resize(){
+    fit();
+    render();
+}
+
+if(typeof ResizeObserver!=="undefined"){
+    new ResizeObserver(resize).observe(plotsBox);
+}
+window.addEventListener("resize",resize);
+
+// initial display
+fit();
+applyRange();
+
+})();
+</script>
+
+</div>
+
+<script>
+// tell the parent page how tall this app is, so the iframe fits it exactly
+(function(){
+  var el=document.getElementById("app");
+  function send(){
+    var h=Math.ceil(el.getBoundingClientRect().height)+16;
+    if(window.parent!==window) window.parent.postMessage({appHeight:h,app:location.pathname},"*");
+  }
+  if(typeof ResizeObserver!=="undefined") new ResizeObserver(send).observe(el);
+  window.addEventListener("load",send);
+  window.addEventListener("resize",send);
+  send();
+})();
+</script>
+</body>
+</html>
